@@ -184,3 +184,8 @@ variable "s3_bucket_force_destroy" {
                 Set to true if var.deploy_type is ecs or lambda.
                 EOT
 }
+
+varialbe "aws_organization_id" {
+  type         = string
+  description  = "(Required) The AWS organization ID."
+}
