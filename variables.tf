@@ -1,6 +1,6 @@
 variable "name" { #reserved
   type        = string
-  description = "(Required) The name associated with the pipeline and assoicated resources. i.e.: app-name"
+  description = "(Required) The name associated with the pipeline and assoicated resources. i.e.: app-name."
 }
 
 variable "deploy_type" { #reserved
@@ -22,22 +22,19 @@ variable "codebuild_image" { #reserved
 
 variable "build_compute_type" { #reserved
   type        = string
-  description = "(Optional) The codebuild environment compute type.
-                  Defaults to BUILD_GENERAL1_SMALL."
+  description = "(Optional) The codebuild environment compute type. Defaults to BUILD_GENERAL1_SMALL."
   default     = "BUILD_GENERAL1_SMALL"
 }
 
 variable "logs_retention_in_days" { #reserved
   type        = number
-  description = "(Optional) Days to keep the cloudwatch logs for the codebuild project.
-                  Defaults to 14."
+  description = "(Optional) Days to keep the cloudwatch logs for the codebuild project. Defaults to 14."
   default     = 14
 }
 
 variable "privileged_mode" { #reserved
   type        = bool
-  description = "(Optional) Use privileged mode for docker containers.
-                  Defaults to false."
+  description = "(Optional) Use privileged mode for docker containers. Defaults to false."
   default     = false
 }
 
@@ -70,8 +67,7 @@ variable "github_oauth_token" { #reserved
 
 variable "function_name" { #reserved
   type        = string
-  description = "(Optional) The name of the lambda function to update.
-                  Required if var.deploy_type is lambda."
+  description = "(Optional) The name of the lambda function to update. Required if var.deploy_type is lambda."
   default     = null
 }
 
@@ -95,17 +91,21 @@ variable "buildspec" { #reserved
 
 variable "central_account_github_token_aws_secret_arn" { #reserved
   type        = string
-  description = "(Optional) The AWS secret ARN for the repo access Github token.
-                  The secret is created in the shared service account.
-                  Required if var.use_repo_access_github_token is true."
+  description = <<EOT
+                (Optional) The AWS secret ARN for the repo access Github token.
+                The secret is created in the shared service account.
+                Required if var.use_repo_access_github_token is true.
+                EOT
   default     = null
 }
 
 variable "central_account_github_token_aws_kms_cmk_arn" { #reserved
   type        = string
-  description = "(Optional) The us-east-1 region AWS KMS customer managered key ARN for encrypting the repo access Github token AWS secret.
-                  The key is created in the shared service account.
-                  Required if var.use_repo_access_github_token is true."
+  description = <<EOT
+                (Optional) The us-east-1 region AWS KMS customer managered key ARN for encrypting the repo access Github token AWS secret.
+                The key is created in the shared service account.
+                Required if var.use_repo_access_github_token is true.
+                EOT
   default     = null
 }
 
@@ -115,56 +115,72 @@ variable "non_default_aws_provider_configurations" {
     profile_name = string,
     allowed_account_ids = list(string)
   }))
-  description = "(Required) A mapping of AWS provider configurations for cross-region resources creation.
-                  The configuration for Ireland region in the shared service account is required at the minimum." 
+  description = <<EOT
+                (Required) A mapping of AWS provider configurations for cross-region resources creation.
+                The configuration for Ireland region in the shared service account is required at the minimum.
+                EOT
   default = {}
 }
 
 variable "use_repo_access_github_token" {
   type        = bool
-  description = "(Optional) Allow the AWS codebuild IAM role read access to the REPO_ACCESS_GITHUB_TOKEN secrets manager secret in the shared service account.
-                  Defaults to false."
+  description = <<EOT
+                (Optional) Allow the AWS codebuild IAM role read access to the REPO_ACCESS_GITHUB_TOKEN secrets manager secret in the shared service account.
+                Defaults to false.
+                EOT
   default     = false
 }
 
 variable "create_cross_region_resources" {
   type        = bool
-  description = "(Required) Create the pipeline associated resources in all regions specified in var.non_default_aws_provider_configurations.
-                  Set to true if var.deploy_type is ecs or lambda."
+  description = <<EOT
+                (Required) Create the pipeline associated resources in all regions specified in var.non_default_aws_provider_configurations.
+                Set to true if var.deploy_type is ecs or lambda.
+                EOT
 }
 
 variable "create_ireland_region_resources" {
   type        = bool
-  description = "(Required) Create the pipeline associated resources in the Ireland region.
-                  Set to true if var.deploy_type is ecs or lambda."
+  description = <<EOT
+                (Required) Create the pipeline associated resources in the Ireland region.
+                Set to true if var.deploy_type is ecs or lambda.
+                EOT
 }
 
 variable "svcs_account_virginia_kms_cmk_arn_for_secrets_manager" {
   type        = string
-  description = "(Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting secrets manager data.
-                  The key is created in the shared service account.
-                  Required if var.use_repo_access_github_token is true."
+  description = <<EOT
+                (Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting secrets manager data.
+                The key is created in the shared service account.
+                Required if var.use_repo_access_github_token is true.
+                EOT
   default     = null
 }
 
 variable "svcs_account_virginia_kms_cmk_arn_for_s3" {
   type        = string
-  description = "(Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting s3 data.
+  description = <<EOT
+                (Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting s3 data.
                   The key is created in the shared service account.
-                  Required if var.deploy_type is ecs or lambda."
+                  Required if var.deploy_type is ecs or lambda.
+                EOT
   default     = null
 }
 
 variable "svcs_account_ireland_kms_cmk_arn_for_s3" {
   type        = string
-  description = "(Optional) The eu-west-1 region AWS KMS customer managed key ARN for encrypting s3 data.
-                  The key is created in the shared service account.
-                  Required if var.create_ireland_region_resources is true."
+  description = <<EOT
+                (Optional) The eu-west-1 region AWS KMS customer managed key ARN for encrypting s3 data.
+                The key is created in the shared service account.
+                Required if var.create_ireland_region_resources is true.
+                EOT
   default     = null
 }
 
 variable "s3_bucket_force_destroy" {
   type        = bool
-  description = "(Required) Delete all objects in S3 bucket upon bucket deletion. S3 objects are not recoverable.
-                  Set to true if var.deploy_type is ecs or lambda."
+  description = <<EOT
+                (Required) Delete all objects in S3 bucket upon bucket deletion. S3 objects are not recoverable.
+                Set to true if var.deploy_type is ecs or lambda.
+                EOT
 }
