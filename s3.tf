@@ -196,7 +196,7 @@ resource "aws_iam_role_policy" "s3_replicate_access_policy" {
 }
 
 data "aws_iam_policy_document" "kms_full_access" {
-  count = local.create_cross_region_resources ? 1 : 0
+  count = var.create_cross_region_resources ? 1 : 0
   statement {
     actions = [
       "kms:Decrypt"
