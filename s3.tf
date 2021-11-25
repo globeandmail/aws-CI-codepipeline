@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "artifact" {
-  # S3 bucket cannot be longer than 63 characters
-  bucket = lower(substr("codepipeline-ci-${local.account_region}-${local.account_id}-${var.name}", 0, 63))
+  # S3 bucket cannot be longer than 63 characters and cannot end with dash
+  bucket = trimsuffix(lower(substr("codepipeline-ci-${local.account_region}-${local.account_id}-${var.name}", 0, 63)), "-")
   acl    = "private"
   force_destroy = var.s3_bucket_force_destroy
 
@@ -231,8 +231,8 @@ resource "aws_iam_role_policy" "kms_full_access_policy" {
 # Cross-Region Resources
 resource "aws_s3_bucket" "artifact_ireland" {
   count  = var.create_ireland_region_resources ? 1 : 0
-  # S3 bucket cannot be longer than 63 characters
-  bucket = lower(substr("codepipeline-ci-${local.ireland_region}-${local.account_id}-${var.name}", 0, 63))
+  # S3 bucket cannot be longer than 63 characters and cannot end with dash
+  bucket = trimsuffix(lower(substr("codepipeline-ci-${local.ireland_region}-${local.account_id}-${var.name}", 0, 63)), "-")
   acl    = "private"
   force_destroy = var.s3_bucket_force_destroy
   provider = aws.ireland
