@@ -14,7 +14,7 @@ locals {
                           {
                             identifier_prefix = "function_zip"
                             object_name = "lambda.zip"
-                            object_path = var.function_name
+                            object_path = var.lambda_function_name
                           } :
                           {
                             identifier_prefix = "imagedefinitions_file"

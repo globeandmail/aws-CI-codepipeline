@@ -113,7 +113,7 @@ data "aws_iam_policy_document" "codebuild_secrets_manager" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      replace(var.central_account_github_token_aws_secret_arn, "/-.{6}$/", "-??????")
+      replace(var.svcs_account_github_token_aws_secret_arn, "/-.{6}$/", "-??????")
     ]
   }
 }
@@ -135,7 +135,7 @@ data "aws_iam_policy_document" "codebuild_kms" {
       ]
 
       resources = [
-        var.central_account_github_token_aws_kms_cmk_arn,
+        var.svcs_account_github_token_aws_kms_cmk_arn,
         var.svcs_account_virginia_kms_cmk_arn_for_s3,
         var.svcs_account_ireland_kms_cmk_arn_for_s3
       ]
@@ -150,7 +150,7 @@ data "aws_iam_policy_document" "codebuild_kms" {
       ]
 
       resources = [
-        var.central_account_github_token_aws_kms_cmk_arn,
+        var.svcs_account_github_token_aws_kms_cmk_arn,
         var.svcs_account_virginia_kms_cmk_arn_for_s3
       ]
     }
@@ -248,7 +248,7 @@ resource "aws_codebuild_project" "project" {
       for_each = var.use_repo_access_github_token ? [1] : []
       content {
         name  = "REPO_ACCESS_GITHUB_TOKEN_SECRETS_ID"
-        value = var.central_account_github_token_aws_secret_arn
+        value = var.svcs_account_github_token_aws_secret_arn
         type = "SECRETS_MANAGER"
       }
     }

@@ -65,7 +65,7 @@ variable "github_oauth_token" { #reserved
   description = "(Required) The GitHub oauth token."
 }
 
-variable "function_name" { #reserved
+variable "lambda_function_name" { #reserved
   type        = string
   description = "(Optional) The name of the lambda function to update. Required if var.deploy_type is lambda."
   default     = null
@@ -89,7 +89,7 @@ variable "buildspec" { #reserved
   default     = "buildspec.yml"
 }
 
-variable "central_account_github_token_aws_secret_arn" { #reserved
+variable "svcs_account_github_token_aws_secret_arn" { #reserved
   type        = string
   description = <<EOT
                 (Optional) The AWS secret ARN for the repo access Github token.
@@ -99,7 +99,7 @@ variable "central_account_github_token_aws_secret_arn" { #reserved
   default     = null
 }
 
-variable "central_account_github_token_aws_kms_cmk_arn" { #reserved
+variable "svcs_account_github_token_aws_kms_cmk_arn" { #reserved
   type        = string
   description = <<EOT
                 (Optional) The us-east-1 region AWS KMS customer managered key ARN for encrypting the repo access Github token AWS secret.
@@ -185,7 +185,7 @@ variable "s3_bucket_force_destroy" {
                 EOT
 }
 
-varialbe "aws_organization_id" {
+variable "aws_organization_id" {
   type         = string
   description  = "(Required) The AWS organization ID."
 }

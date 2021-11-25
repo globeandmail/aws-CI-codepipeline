@@ -16,7 +16,7 @@ output "artifact_bucket_arn" {
 
 output "output_artifact_object_name" {
   value = (var.deploy_type == "lambda" ?
-            "${var.function_name}/${local.artifact_attributes["object_name"]}" :
+            "${var.lambda_function_name}/${local.artifact_attributes["object_name"]}" :
             var.deploy_type == "ecs" ? "${var.ecr_name}/${local.artifact_attributes["object_name"]}" : null)
 }
 
