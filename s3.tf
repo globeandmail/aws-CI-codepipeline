@@ -22,6 +22,7 @@ resource "aws_s3_bucket" "artifact" {
           id     = "ireland_region_bucket_replication"
           status = "Enabled"
 
+          prefix = local.artifact_attributes["object_path"]
           source_selection_criteria {
             sse_kms_encrypted_objects  {
               enabled = true
