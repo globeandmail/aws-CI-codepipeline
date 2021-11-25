@@ -126,11 +126,9 @@ variable "svcs_account_ireland_kms_cmk_arn_for_s3" {
 variable "svcs_account_virginia_kms_cmk_arn_for_s3" {
   type        = string
   description = <<EOT
-                (Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting s3 data.
+                (Required) The us-east-1 region AWS KMS customer managed key ARN for encrypting s3 data.
                   The key is created in the shared service account.
-                  Required if var.deploy_type is ecs or lambda.
                 EOT
-  default     = null
 }
 
 variable "ecr_name" { #reserved
