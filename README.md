@@ -4,34 +4,34 @@ The output artifact can be used to trigger the code pipeline for CD (i.e. deploy
 For multi-region build, modify the module to replicate the output artifact to an S3 bucket in the same region as the target deployment code pipeline.
 The module currently supports multi-region build for lambda, ECS and ECR in the N.Virginia and Ireland regions.
 
-Note:
+Notes:
 1. The account that owns the github token must have admin access on the repo in order to generate a github webhook.
 2. If `use_docker_credentials` is set to `true`, the environment variables `DOCKERHUB_USER` and `DOCKERHUB_PASS` are exposed via codebuild.
 
-You can add these 2 lines to the beginning of your `build` phase commands in `buildspec.yml` to login to Dockerhub.
+    You can add these 2 lines to the beginning of your `build` phase commands in `buildspec.yml` to login to Dockerhub.
 
-```yml
-  build:
-    commands:
-      - echo "Logging into Dockerhub..."
-      - docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
-      ...
-      ...
-```
+    ```yml
+    build:
+        commands:
+        - echo "Logging into Dockerhub..."
+        - docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
+        ...
+        ...
+    ```
 3. If `use_repo_access_github_token` is set to `true`, the environment variable `REPO_ACCESS_GITHUB_TOKEN_SECRETS_ID` is exposed via codebuild.
 
-You can add this line to the beginning of your `build` phase commands in `buildspec.yml` to assign the environment variable to local variable `GITHUB_TOKEN`.
+    You can add this line to the beginning of your `build` phase commands in `buildspec.yml` to assign the environment variable to local variable `GITHUB_TOKEN`.
 
-```yml
-  build:
-    commands:
-      - export GITHUB_TOKEN=${REPO_ACCESS_GITHUB_TOKEN_SECRETS_ID}
-      ...
-      ...
-      - docker build -t $REPOSITORY_URI:latest --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} .
-      ...
-      ...
-```
+    ```yml
+    build:
+        commands:
+        - export GITHUB_TOKEN=${REPO_ACCESS_GITHUB_TOKEN_SECRETS_ID}
+        ...
+        ...
+        - docker build -t $REPOSITORY_URI:latest --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} .
+        ...
+        ...
+    ```
 
 ## Usage
 ### Lambda
