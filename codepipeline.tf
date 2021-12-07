@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "codepipeline_assume" {
 }
 
 resource "aws_iam_role" "codepipeline" {
-  name               = "codepipeline-${local.codepipeline_name}"
+  name               = "codepipeline-ci-${local.codepipeline_name}"
   assume_role_policy = data.aws_iam_policy_document.codepipeline_assume.json
 
   tags = var.tags
@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "codepipeline_baseline" {
 }
 
 resource "aws_iam_role_policy" "codepipeline_baseline" {
-  name   = "codepipeline-baseline-${local.codepipeline_name}"
+  name   = "codepipeline-ci-baseline-${local.codepipeline_name}"
   role   = aws_iam_role.codepipeline.id
   policy = data.aws_iam_policy_document.codepipeline_baseline.json
 }
