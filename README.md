@@ -32,6 +32,7 @@ Notes:
         ...
         ...
     ```
+4. AWS CloudTrail data events need to be configured in the shared service account to log S3 object-level API operations in the codepipeline buckets. The logs will be forwarded to the logging bucket in the central logging account. For example of how to log all S3 bucket object events in CloudTrail, see terraform doc [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudtrail).
 
 ## Usage
 ### Lambda
