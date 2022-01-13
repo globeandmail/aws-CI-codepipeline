@@ -178,3 +178,9 @@ variable "svcs_account_github_token_aws_kms_cmk_arn" {
                 EOT
   default     = null
 }
+
+variable "s3_block_public_access" {
+  type = bool
+  description = "(Optional) Enable the S3 block public access setting for the artifact bucket."
+  default = false
+}

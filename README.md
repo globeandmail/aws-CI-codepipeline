@@ -4,7 +4,7 @@ The output artifact can be used to trigger the code pipeline for CD (i.e. deploy
 For multi-region build, modify the module to replicate the output artifact to an S3 bucket in the same region as the target deployment code pipeline.
 The module currently supports multi-region build for lambda, ECS and ECR in the N.Virginia and Ireland regions.
 
-Notes:
+## v1.0 Notes
 1. The account that owns the github token must have admin access on the repo in order to generate a github webhook.
 2. If `use_docker_credentials` is set to `true`, the environment variables `DOCKERHUB_USER` and `DOCKERHUB_PASS` are exposed via codebuild.
 
@@ -34,11 +34,14 @@ Notes:
     ```
 4. AWS CloudTrail data events need to be configured in the shared service account to log S3 object-level API operations in the codepipeline buckets. The logs will be forwarded to the logging bucket in the central logging account. For example of how to log all S3 bucket object events in CloudTrail, see terraform doc [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudtrail).
 
+## v1.1 Notes
+If `s3_block_public_access` is set to `true`, the block public access setting for the artifact bucket is enabled.
+
 ## Usage
 ### Lambda
 ```hcl
 module "lambda_ci_pipeline" {
-  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.0"
+  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.1"
 
   name                                     = "app-name"
   deploy_type                              = "lambda"
@@ -60,6 +63,7 @@ module "lambda_ci_pipeline" {
   create_ireland_region_resources          = true
   svcs_account_ireland_kms_cmk_arn_for_s3  = "svcs-account-ireland-kms-cmk-arn-for-s3"
   svcs_account_virginia_kms_cmk_arn_for_s3 = "svcs-account-virginia-kms-cmk-arn-for-s3"
+  s3_block_public_access                   = true
   tags                                     = {
                                                Environment = var.environment
                                              }
@@ -95,6 +99,7 @@ module "ecs_ci_pipeline" {
   use_repo_access_github_token              = true
   svcs_account_github_token_aws_secret_arn  = "svcs-account-github-token-aws-secret-arn"
   svcs_account_github_token_aws_kms_cmk_arn = "svcs-account-github-token-aws-kms-cmk-arn"
+  s3_block_public_access                   = true
   tags                                      = {
                                                 Environment = var.environment
                                               }
@@ -128,6 +133,7 @@ module "ecr_ci_pipeline" {
   use_repo_access_github_token              = true
   svcs_account_github_token_aws_secret_arn  = "svcs-account-github-token-aws-secret-arn"
   svcs_account_github_token_aws_kms_cmk_arn = "svcs-account-github-token-aws-kms-cmk-arn"
+  s3_block_public_access                   = true
   tags                                      = {
                                                 Environment = var.environment
                                               }
@@ -171,6 +177,7 @@ module "ecr_ci_pipeline" {
 | <a name="input_name"></a> [name](#input\_name) | (Required) The name associated with the pipeline and assoicated resources. i.e.: app-name. | `string` | n/a | yes |
 | <a name="input_non_default_aws_provider_configurations"></a> [non\_default\_aws\_provider\_configurations](#input\_non\_default\_aws\_provider\_configurations) | (Required) A mapping of AWS provider configurations for cross-region resources creation.<br>                The configuration for Ireland region in the shared service account is required at the minimum. | <pre>map(object({<br>    region_name = string,<br>    profile_name = string,<br>    allowed_account_ids = list(string)<br>  }))</pre> | `{}` | no |
 | <a name="input_privileged_mode"></a> [privileged\_mode](#input\_privileged\_mode) | (Optional) Use privileged mode for docker containers. Defaults to false. | `bool` | `false` | no |
+| <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | (Optional) Enable the S3 block public access setting for the artifact bucket. | `bool` | `false` | no |
 | <a name="input_s3_bucket_force_destroy"></a> [s3\_bucket\_force\_destroy](#input\_s3\_bucket\_force\_destroy) | (Optional) Delete all objects in S3 bucket upon bucket deletion. S3 objects are not recoverable.<br>                Set to true if var.deploy\_type is ecs or lambda. Defaults to false. | `bool` | `false` | no |
 | <a name="input_svcs_account_github_token_aws_kms_cmk_arn"></a> [svcs\_account\_github\_token\_aws\_kms\_cmk\_arn](#input\_svcs\_account\_github\_token\_aws\_kms\_cmk\_arn) | (Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting the repo access Github token AWS secret.<br>                The key is created in the shared service account.<br>                Required if var.use\_repo\_access\_github\_token is true. | `string` | `null` | no |
 | <a name="input_svcs_account_github_token_aws_secret_arn"></a> [svcs\_account\_github\_token\_aws\_secret\_arn](#input\_svcs\_account\_github\_token\_aws\_secret\_arn) | (Optional) The AWS secret ARN for the repo access Github token.<br>                The secret is created in the shared service account.<br>                Required if var.use\_repo\_access\_github\_token is true. | `string` | `null` | no |
