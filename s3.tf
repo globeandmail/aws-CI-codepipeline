@@ -59,6 +59,16 @@ resource "aws_s3_bucket" "artifact" {
   tags = var.tags
 }
 
+resource "aws_s3_bucket_public_access_block" "artifact" {
+  count  = var.s3_block_public_access ? 1 : 0
+  bucket = aws_s3_bucket.artifact.id
+
+  block_public_acls   = true
+  block_public_policy = true
+  ignore_public_acls  = true
+  restrict_public_buckets  = true
+}
+
 data "aws_iam_policy_document" "artifact_bucket_policy" {
   count = var.deploy_type == "lambda" || var.deploy_type == "ecs" ? 1 : 0
   statement {
@@ -256,6 +266,16 @@ resource "aws_s3_bucket" "artifact_ireland" {
   }
 
   tags = var.tags
+}
+
+resource "aws_s3_bucket_public_access_block" "artifact_ireland" {
+  count  = var.create_ireland_region_resources && var.s3_block_public_access ? 1 : 0
+  bucket = aws_s3_bucket.artifact_ireland.id
+
+  block_public_acls   = true
+  block_public_policy = true
+  ignore_public_acls  = true
+  restrict_public_buckets  = true
 }
 
 data "aws_iam_policy_document" "artifact_bucket_ireland_policy" {
