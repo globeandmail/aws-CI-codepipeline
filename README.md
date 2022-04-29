@@ -73,7 +73,7 @@ module "lambda_ci_pipeline" {
 ### ECS
 ```hcl
 module "ecs_ci_pipeline" {
-  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.0"
+  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.1"
 
   name                                      = "app-name"
   deploy_type                               = "ecs"
@@ -109,7 +109,7 @@ module "ecs_ci_pipeline" {
 ### ECR
 ```hcl
 module "ecr_ci_pipeline" {
-  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.0"
+  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.1"
 
   name                                      = "app-name"
   deploy_type                               = "ecr"
