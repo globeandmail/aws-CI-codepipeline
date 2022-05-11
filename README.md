@@ -37,11 +37,31 @@ The module currently supports multi-region build for lambda, ECS and ECR in the 
 ## v1.1 Notes
 If `s3_block_public_access` is set to `true`, the block public access setting for the artifact bucket is enabled.
 
+
+## v.1.2 Note
+If `use_sysdig_api_token` is set to `true`, the secrets manager environment variable `SYSDIG_API_TOKEN_SECRETS_ID` is exposed via codebuild.
+
+You can add these 8 lines to the end of your `build` phase commands in `buildspec.yml` to run Sysdig image security scans.
+```yml
+  build:
+    commands:
+      ...
+      ...
+      - echo "Running Sysdig image inline scan..."
+      - docker run --rm -u $(id -u) -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd)/reports:/staging/reports quay.io/sysdig/secure-inline-scan:2 -s https://us2.app.sysdig.com -k ${SYSDIG_API_TOKEN_SECRETS_ID} --storage-type docker-daemon --storage-path /var/run/docker.sock -r /staging/reports ${REPOSITORY_URI}:${IMAGE_TAG} || true
+      - echo "Downloading Sysdig Cli Scanner..."
+      - curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+      - echo "Adding executable permission to sysdig-cli-scanner binary..."
+      - chmod +x ./sysdig-cli-scanner
+      - echo "Running Sysdig image cli scan..."
+      - SECURE_API_TOKEN=${SYSDIG_API_TOKEN_SECRETS_ID} ./sysdig-cli-scanner --apiurl https://us2.app.sysdig.com ${REPOSITORY_URI}:${IMAGE_TAG} --policy sysdig_best_practices || true
+```
+
 ## Usage
 ### Lambda
 ```hcl
 module "lambda_ci_pipeline" {
-  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.1"
+  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.2"
 
   name                                     = "app-name"
   deploy_type                              = "lambda"
@@ -73,70 +93,74 @@ module "lambda_ci_pipeline" {
 ### ECS
 ```hcl
 module "ecs_ci_pipeline" {
-  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.1"
+  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.2"
 
-  name                                      = "app-name"
-  deploy_type                               = "ecs"
-  aws_organization_id                       = "aws-organization-id"
-  github_repo_owner                         = "github-account-name"
-  github_repo_name                          = "github-repo-name"
-  github_branch_name                        = "github-branch-name"
-  github_oauth_token                        = data.aws_ssm_parameter.github_token.value
-  non_default_aws_provider_configurations   = {
-                                                ireland = {
-                                                  region_name = "region-name",
-                                                  profile_name = "profile-name",
-                                                  allowed_account_ids = ["account-id"]
-                                                }
-                                              }
-  s3_bucket_force_destroy                   = true
-  create_cross_region_resources             = true
-  create_ireland_region_resources           = true
-  svcs_account_ireland_kms_cmk_arn_for_s3   = "svcs-account-ireland-kms-cmk-arn-for-s3"
-  svcs_account_virginia_kms_cmk_arn_for_s3  = "svcs-account-virginia-kms-cmk-arn-for-s3"
-  ecr_name                                  = "ecr-repo-name"
-  use_docker_credentials                    = true
-  use_repo_access_github_token              = true
-  svcs_account_github_token_aws_secret_arn  = "svcs-account-github-token-aws-secret-arn"
-  svcs_account_github_token_aws_kms_cmk_arn = "svcs-account-github-token-aws-kms-cmk-arn"
-  s3_block_public_access                   = true
-  tags                                      = {
-                                                Environment = var.environment
-                                              }
+  name                                         = "app-name"
+  deploy_type                                  = "ecs"
+  aws_organization_id                          = "aws-organization-id"
+  github_repo_owner                            = "github-account-name"
+  github_repo_name                             = "github-repo-name"
+  github_branch_name                           = "github-branch-name"
+  github_oauth_token                           = data.aws_ssm_parameter.github_token.value
+  non_default_aws_provider_configurations      = {
+                                                   ireland = {
+                                                     region_name = "region-name",
+                                                     profile_name = "profile-name",
+                                                     allowed_account_ids = ["account-id"]
+                                                   }
+                                                 }
+  s3_bucket_force_destroy                      = true
+  create_cross_region_resources                = true
+  create_ireland_region_resources              = true
+  svcs_account_ireland_kms_cmk_arn_for_s3      = "svcs-account-ireland-kms-cmk-arn-for-s3"
+  svcs_account_virginia_kms_cmk_arn_for_s3     = "svcs-account-virginia-kms-cmk-arn-for-s3"
+  ecr_name                                     = "ecr-repo-name"
+  use_docker_credentials                       = true
+  use_repo_access_github_token                 = true
+  svcs_account_github_token_aws_secret_arn     = "svcs-account-github-token-aws-secret-arn"
+  svcs_account_aws_kms_cmk_arn                 = "svcs-account-aws-kms-cmk-arn"
+  s3_block_public_access                       = true
+  use_sysdig_api_token                         = true
+  svcs_account_sysdig_api_token_aws_secret_arn = "svcs-account-sysdig-api-token-aws-secret-arn"
+  tags                                         = {
+                                                   Environment = var.environment
+                                                 }
 }
 ```
 
 ### ECR
 ```hcl
 module "ecr_ci_pipeline" {
-  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.1"
+  source = "github.com/globeandmail/aws-ci-codepipeline?ref=1.2"
 
-  name                                      = "app-name"
-  deploy_type                               = "ecr"
-  aws_organization_id                       = "aws-organization-id"
-  github_repo_owner                         = "github-account-name"
-  github_repo_name                          = "github-repo-name"
-  github_branch_name                        = "github-branch-name"
-  github_oauth_token                        = data.aws_ssm_parameter.github_token.value
-  non_default_aws_provider_configurations   = {
-                                                ireland = {
-                                                  region_name = "region-name",
-                                                  profile_name = "profile-name",
-                                                  allowed_account_ids = ["account-id"]
-                                                }
-                                              }
-  create_cross_region_resources             = false
-  create_ireland_region_resources           = false
-  svcs_account_virginia_kms_cmk_arn_for_s3  = "svcs-account-virginia-kms-cmk-arn-for-s3"
-  ecr_name                                  = "ecr-repo-name"
-  use_docker_credentials                    = true
-  use_repo_access_github_token              = true
-  svcs_account_github_token_aws_secret_arn  = "svcs-account-github-token-aws-secret-arn"
-  svcs_account_github_token_aws_kms_cmk_arn = "svcs-account-github-token-aws-kms-cmk-arn"
-  s3_block_public_access                   = true
-  tags                                      = {
-                                                Environment = var.environment
-                                              }
+  name                                         = "app-name"
+  deploy_type                                  = "ecr"
+  aws_organization_id                          = "aws-organization-id"
+  github_repo_owner                            = "github-account-name"
+  github_repo_name                             = "github-repo-name"
+  github_branch_name                           = "github-branch-name"
+  github_oauth_token                           = data.aws_ssm_parameter.github_token.value
+  non_default_aws_provider_configurations      = {
+                                                   ireland = {
+                                                     region_name = "region-name",
+                                                     profile_name = "profile-name",
+                                                     allowed_account_ids = ["account-id"]
+                                                   }
+                                                 }
+  create_cross_region_resources                = false
+  create_ireland_region_resources              = false
+  svcs_account_virginia_kms_cmk_arn_for_s3     = "svcs-account-virginia-kms-cmk-arn-for-s3"
+  ecr_name                                     = "ecr-repo-name"
+  use_docker_credentials                       = true
+  use_repo_access_github_token                 = true
+  svcs_account_github_token_aws_secret_arn     = "svcs-account-github-token-aws-secret-arn"
+  svcs_account_aws_kms_cmk_arn                 = "svcs-account-aws-kms-cmk-arn"
+  s3_block_public_access                       = true
+  use_sysdig_api_token                         = true
+  svcs_account_sysdig_api_token_aws_secret_arn = "svcs-account-sysdig-api-token-aws-secret-arn"
+  tags                                         = {
+                                                   Environment = var.environment
+                                                 }
 }
 ```
 
@@ -179,13 +203,15 @@ module "ecr_ci_pipeline" {
 | <a name="input_privileged_mode"></a> [privileged\_mode](#input\_privileged\_mode) | (Optional) Use privileged mode for docker containers. Defaults to false. | `bool` | `false` | no |
 | <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | (Optional) Enable the S3 block public access setting for the artifact bucket. | `bool` | `false` | no |
 | <a name="input_s3_bucket_force_destroy"></a> [s3\_bucket\_force\_destroy](#input\_s3\_bucket\_force\_destroy) | (Optional) Delete all objects in S3 bucket upon bucket deletion. S3 objects are not recoverable.<br>                Set to true if var.deploy\_type is ecs or lambda. Defaults to false. | `bool` | `false` | no |
-| <a name="input_svcs_account_github_token_aws_kms_cmk_arn"></a> [svcs\_account\_github\_token\_aws\_kms\_cmk\_arn](#input\_svcs\_account\_github\_token\_aws\_kms\_cmk\_arn) | (Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting the repo access Github token AWS secret.<br>                The key is created in the shared service account.<br>                Required if var.use\_repo\_access\_github\_token is true. | `string` | `null` | no |
+| <a name="input_svcs_account_aws_kms_cmk_arn"></a> [svcs\_account\_aws\_kms\_cmk\_arn](#input\_svcs\_account\_aws\_kms\_cmk\_arn) | (Optional) The us-east-1 region AWS KMS customer managed key ARN for encrypting all AWS secrets.<br>                The key is created in the shared service account.<br>                Required if var.use\_repo\_access\_github\_token or var.use\_sysdig\_api\_token is true. | `string` | `null` | no |
 | <a name="input_svcs_account_github_token_aws_secret_arn"></a> [svcs\_account\_github\_token\_aws\_secret\_arn](#input\_svcs\_account\_github\_token\_aws\_secret\_arn) | (Optional) The AWS secret ARN for the repo access Github token.<br>                The secret is created in the shared service account.<br>                Required if var.use\_repo\_access\_github\_token is true. | `string` | `null` | no |
 | <a name="input_svcs_account_ireland_kms_cmk_arn_for_s3"></a> [svcs\_account\_ireland\_kms\_cmk\_arn\_for\_s3](#input\_svcs\_account\_ireland\_kms\_cmk\_arn\_for\_s3) | (Optional) The eu-west-1 region AWS KMS customer managed key ARN for encrypting s3 data.<br>                The key is created in the shared service account.<br>                Required if var.create\_ireland\_region\_resources is true. | `string` | `null` | no |
+| <a name="input_svcs_account_sysdig_api_token_aws_secret_arn"></a> [svcs\_account\_sysdig\_api\_token\_aws\_secret\_arn](#input\_svcs\_account\_sysdig\_api\_token\_aws\_secret\_arn) | (Optional) The AWS secret ARN for the sysdig API token.<br>                The secret is created in the shared service account.<br>                Required if var.use\_sysdig\_api\_token is true. | `string` | `null` | no |
 | <a name="input_svcs_account_virginia_kms_cmk_arn_for_s3"></a> [svcs\_account\_virginia\_kms\_cmk\_arn\_for\_s3](#input\_svcs\_account\_virginia\_kms\_cmk\_arn\_for\_s3) | (Required) The us-east-1 region AWS KMS customer managed key ARN for encrypting s3 data.<br>                  The key is created in the shared service account. | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | (Optional) A mapping of tags to assign to the resource | `map` | `{}` | no |
 | <a name="input_use_docker_credentials"></a> [use\_docker\_credentials](#input\_use\_docker\_credentials) | (Optional) Use dockerhub credentals stored in parameter store. Defaults to false. | `bool` | `false` | no |
 | <a name="input_use_repo_access_github_token"></a> [use\_repo\_access\_github\_token](#input\_use\_repo\_access\_github\_token) | (Optional) Allow the AWS codebuild IAM role read access to the REPO\_ACCESS\_GITHUB\_TOKEN secrets manager secret in the shared service account.<br>                Defaults to false. | `bool` | `false` | no |
+| <a name="input_use_sysdig_api_token"></a> [use\_sysdig\_api\_token](#input\_use\_sysdig\_api\_token) | (Optional) Allow the AWS codebuild IAM role read access to the SYSDIG\_API\_TOKEN secrets manager secret in the shared service account.<br>                Defaults to false. | `bool` | `false` | no |
 
 ## Outputs
 

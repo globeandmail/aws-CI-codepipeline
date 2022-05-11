@@ -107,19 +107,47 @@ resource "aws_iam_role_policy" "codebuild_ecr" {
 
 
 data "aws_iam_policy_document" "codebuild_secrets_manager" {
-  count = var.use_repo_access_github_token ? 1 : 0
-  statement {
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      replace(var.svcs_account_github_token_aws_secret_arn, "/-.{6}$/", "-??????")
-    ]
+  count = var.use_repo_access_github_token || var.use_sysdig_api_token ? 1 : 0
+  dynamic "statement" {
+    for_each = var.use_repo_access_github_token && !var.use_sysdig_api_token ? [1] : []
+    content {
+      actions = [
+        "secretsmanager:GetSecretValue"
+      ]
+      resources = [
+        replace(var.svcs_account_github_token_aws_secret_arn, "/-.{6}$/", "-??????")
+      ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = !var.use_repo_access_github_token && var.use_sysdig_api_token ? [1] : []
+    content {
+      actions = [
+        "secretsmanager:GetSecretValue"
+      ]
+      resources = [
+        replace(var.svcs_account_sysdig_api_token_aws_secret_arn, "/-.{6}$/", "-??????")
+      ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.use_repo_access_github_token && var.use_sysdig_api_token ? [1] : []
+    content {
+      actions = [
+        "secretsmanager:GetSecretValue"
+      ]
+      resources = [
+        replace(var.svcs_account_github_token_aws_secret_arn, "/-.{6}$/", "-??????"),
+        replace(var.svcs_account_sysdig_api_token_aws_secret_arn, "/-.{6}$/", "-??????")
+      ]
+    }
   }
 }
 
 resource "aws_iam_role_policy" "codebuild_secrets_manager" {
-  count  = var.use_repo_access_github_token ? 1 : 0
+  count  = var.use_repo_access_github_token || var.use_sysdig_api_token ? 1 : 0
   name   = "codebuild-secrets-manager-${local.codebuild_name}"
   role   = aws_iam_role.codebuild.id
   policy = data.aws_iam_policy_document.codebuild_secrets_manager[0].json
@@ -135,7 +163,7 @@ data "aws_iam_policy_document" "codebuild_kms" {
       ]
 
       resources = [
-        var.svcs_account_github_token_aws_kms_cmk_arn,
+        var.svcs_account_aws_kms_cmk_arn,
         var.svcs_account_virginia_kms_cmk_arn_for_s3,
         var.svcs_account_ireland_kms_cmk_arn_for_s3
       ]
@@ -150,7 +178,7 @@ data "aws_iam_policy_document" "codebuild_kms" {
       ]
 
       resources = [
-        var.svcs_account_github_token_aws_kms_cmk_arn,
+        var.svcs_account_aws_kms_cmk_arn,
         var.svcs_account_virginia_kms_cmk_arn_for_s3
       ]
     }
@@ -249,6 +277,15 @@ resource "aws_codebuild_project" "project" {
       content {
         name  = "REPO_ACCESS_GITHUB_TOKEN_SECRETS_ID"
         value = var.svcs_account_github_token_aws_secret_arn
+        type = "SECRETS_MANAGER"
+      }
+    }
+
+    dynamic "environment_variable" {
+      for_each = var.use_sysdig_api_token ? [1] : []
+      content {
+        name  = "SYSDIG_API_TOKEN_SECRETS_ID"
+        value = var.svcs_account_sysdig_api_token_aws_secret_arn
         type = "SECRETS_MANAGER"
       }
     }
